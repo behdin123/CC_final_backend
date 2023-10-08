@@ -1,0 +1,1054 @@
+openapi: 3.0.0
+info:
+  title: My REST API
+  version: 1.0.0
+  description: A REST API to manage courses, slides, teams, and users.
+servers:
+  - url: http://localhost:3000/
+    description: Localhost development server
+  - url: https://p-manager-backend.onrender.com
+    description: Live server on Render
+
+components:
+  schemas:
+    objectId:
+      type: string
+      pattern: '^[0-9a-fA-F]{24}$'
+    Slide:
+      type: object
+      properties:
+        _id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        lesson:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    Team:
+      type: object
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        username:
+          type: string
+        users:
+          type: array
+          items:
+            type: string
+        owner:
+          type: string
+    User:
+      type: object
+      properties:
+        _id:
+          type: string
+        username:
+          type: string
+        email:
+          type: string
+        first_name:
+          type: string
+        last_name:
+          type: string
+        profile_image:
+          type: string
+        skills:
+          type: array
+          items:
+            type: string
+
+paths:
+
+  # Auth routes
+  /auth/register:
+    post:
+      summary: Register a new user
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                first_name:
+                  type: string
+                last_name:
+                  type: string
+                username:
+                  type: string
+                  required: true
+                  unique: true
+                  lowercase: true
+                mobile:
+                  type: string
+                  required: true
+                  unique: true
+                email:
+                  type: string
+                  required: true
+                  unique: true
+                  lowercase: true
+                password:
+                  type: string
+                  required: true
+                confirm_password:
+                  type: string
+                  required: true
+                  description: Should match the password field
+                profile_image:
+                  type: string
+                  required: false
+                roles:
+                  type: array
+                  items:
+                    type: string
+                  default:
+                    - "USER"
+                skills:
+                  type: array
+                  items:
+                    type: string
+                  default: []
+                teams:
+                  type: array
+                  items:
+                    type: string
+                    format: ObjectId
+                  default: []
+      responses:
+        200:
+          description: User successfully registered
+        400:
+          description: Bad request
+
+
+  /auth/login:
+    post:
+      summary: Log in a user
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  required: true
+                  unique: true
+                  lowercase: true
+                password:
+                  type: string
+                  required: true
+      responses:
+        200:
+          description: User successfully logged in
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  user:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                        format: ObjectId
+                      username:
+                        type: string
+                      email:
+                        type: string
+                      roles:
+                        type: array
+                        items:
+                          type: string
+        400:
+          description: Bad request
+        401:
+          description: Unauthorized
+
+# Catalog routes
+
+  /catalog/create:
+    post:
+      summary: Create a new catalog
+      description: Creates a new catalog
+      tags:
+        - Catalog
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  required: true
+                categories:
+                  type: string
+                  description: "Comma-separated list of categories"
+                description:
+                  type: string
+                status:
+                  type: boolean
+                  description: "True or False"
+      responses:
+        201:
+          description: The catalog has been successfully created
+        400:
+          description: Bad request
+
+  /catalog/list:
+    get:
+      summary: Get a list of all catalogs
+      tags:
+        - Catalog
+      responses:
+        200:
+          description: A list of all catalogs
+
+  /catalog/{id}:
+    get:
+      summary: Get a specific catalog by ID
+      tags:
+        - Catalog
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: The catalog ID
+      responses:
+        200:
+          description: The catalog with the specified ID
+        404:
+          description: Catalog not found
+
+  /catalog/remove/{id}:
+    delete:
+      summary: Remove a catalog by ID
+      tags:
+        - Catalog
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: The catalog ID
+      responses:
+        200:
+          description: The catalog has been successfully removed
+        404:
+          description: Catalog not found
+
+  /catalog/edit/{id}:
+    put:
+      summary: Update a catalog by ID
+      tags:
+        - Catalog
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: The catalog ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                categories:
+                  type: string
+                  description: "Comma-separated list of categories"
+                description:
+                  type: string
+                status:
+                  type: boolean
+                  description: "True or False"
+      responses:
+        200:
+          description: The catalog has been successfully updated
+        404:
+          description: Catalog not found
+
+
+# Course routes
+
+  /course/create/{catalogID}:
+    post:
+      summary: Create a new course
+      description: Creates a new course within a specific catalog
+      tags:
+        - Course
+      parameters:
+        - in: path
+          name: catalogID
+          schema:
+            type: string
+          required: true
+          description: The catalog ID in which the course will be created
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  required: true
+                description:
+                  type: string
+                image:
+                  type: string
+                  format: binary
+                tags:
+                  type: string
+      responses:
+        201:
+          description: The course has been successfully created
+        400:
+          description: Bad request
+
+  /course/list/{catalogID}:
+    get:
+      summary: Get a list of all courses from a specific catalog
+      description: Retrieves all courses within a specific catalog
+      tags:
+        - Course
+      parameters:
+        - in: path
+          name: catalogID
+          schema:
+            type: string
+          required: true
+          description: The catalog ID from which courses will be retrieved
+      responses:
+        200:
+          description: A list of all courses from the specified catalog
+        404:
+          description: Catalog not found
+
+  /course/{courseId}/lessons:
+    get:
+      summary: Get a list of all lessons for a specific course
+      description: Retrieves all lessons within a specific course by its ID
+      tags:
+        - Course
+      parameters:
+        - in: path
+          name: courseId
+          schema:
+            type: string
+          required: true
+          description: The ID of the course from which lessons will be retrieved
+      responses:
+        200:
+          description: A list of all lessons for the specified course
+        404:
+          description: Course not found
+        500:
+          description: Internal Server Error
+
+  /course/{id}:
+    get:
+      summary: Get a specific course by ID
+      tags:
+        - Course
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: The course ID
+      responses:
+        200:
+          description: The course with the specified ID
+        404:
+          description: course not found
+
+  /course/search/{value}:
+    get:
+      summary: Search courses by a value in the title, description, or tags
+      tags:
+        - Course
+      parameters:
+        - in: path
+          name: value
+          schema:
+            type: string
+          required: true
+          description: The value to search for
+      responses:
+        200:
+          description: The courses matching the search criteria
+        404:
+          description: No courses found
+
+  /course/remove/{id}:
+    delete:
+      summary: Remove a course by ID
+      tags:
+        - Course
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: The course ID
+      responses:
+        200:
+          description: The course has been successfully removed
+        404:
+          description: course not found
+
+  /course/edit/{id}:
+    put:
+      summary: Update a course by ID
+      tags:
+        - Course
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: The course ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                tags:
+                  type: array
+                  items:
+                    type: string
+                catalog:
+                  type: string
+                  description: The catalog ID associated with the course
+      responses:
+        200:
+          description: The course has been successfully updated
+        404:
+          description: Course not found
+
+  /course/edit-courseImage/{id}:
+    patch:
+      summary: Update a course's image by ID
+      tags:
+        - Course
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: The course ID
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+      responses:
+        200:
+          description: The course's image has been successfully updated
+        404:
+          description: Course not found
+
+
+# slide routes
+
+  /course/lesson/{lessonId}/create:
+    post:
+      tags:
+        - Slides
+      summary: Create a new slide
+      parameters:
+        - in: path
+          name: lessonId
+          schema:
+            type: string
+          required: true
+          description: The ID of the lesson
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                text:
+                  type: string
+                image:
+                  type: string
+                  format: binary
+                video:
+                  type: string
+                  format: binary
+      responses:
+        201:
+          description: Slide created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Slide'
+        400:
+          description: Failed to create slide
+        404:
+          description: Lesson not found
+
+  /course/{courseId}/slides/upload-pdf:
+    post:
+      summary: Upload a PDF file and create slides from it
+      tags:
+        - Slides
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                pdf:
+                  type: string
+                  format: binary
+                lessonId:
+                  type: string
+      responses:
+        201:
+          description: The slides were successfully created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: number
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  slides:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Slide'
+        400:
+          description: Bad request
+        500:
+          description: Internal Server Error
+
+  /course/lesson/{lessonId}/slides:
+    get:
+      tags:
+        - Slides
+      summary: Get all slides by lesson ID
+      parameters:
+        - in: path
+          name: lessonId
+          schema:
+            type: string
+          required: true
+          description: The ID of the lesson for which slides are to be retrieved
+      responses:
+        200:
+          description: Slides retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Slide'
+        404:
+          description: Slides not found
+
+
+  /course/slides/{slideId}:
+    get:
+      tags:
+        - Slides
+      summary: Get a slide by its ID
+      parameters:
+        - in: path
+          name: courseId
+          schema:
+            type: string
+          required: true
+          description: The ID of the course
+        - in: path
+          name: slideId
+          schema:
+            type: string
+          required: true
+          description: The ID of the slide to be retrieved
+      responses:
+        200:
+          description: Slide retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Slide'
+        404:
+          description: Slide not found
+ 
+  /course/{slideId}/update:
+    put:
+      tags:
+        - Slides
+      summary: Update a slide
+      parameters:
+        - in: path
+          name: slideId
+          schema:
+            type: string
+          required: true
+          description: The ID of the slide to be updated
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  description: The title of the slide
+                description:
+                  type: string
+                  description: A brief description of the slide
+                text:
+                  type: string
+                  description: The content or text of the slide
+      responses:
+        200:
+          description: Slide updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Slide'
+        400:
+          description: Bad Request. Invalid input or Failed to update slide
+        404:
+          description: Slide not found
+
+  /course/edit-slideImage/{slideId}:
+    patch:
+      tags:
+        - Slides
+      summary: Update a slide's image
+      parameters:
+        - in: path
+          name: slideId
+          schema:
+            type: string
+          required: true
+          description: The ID of the slide whose image is to be updated
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: The image file to upload
+      responses:
+        200:
+          description: Slide image updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Slide'
+        400:
+          description: Bad Request. Invalid input or Failed to update slide image
+        404:
+          description: Slide not found
+
+
+
+  /course/{slideId}/delete:
+    delete:
+      tags:
+        - Slides
+      summary: Delete a slide
+      parameters:
+        - in: path
+          name: slideId
+          schema:
+            type: string
+          required: true
+          description: The ID of the slide to be deleted
+      responses:
+        200:
+          description: Slide deleted successfully
+        404:
+          description: Slide not found
+
+  /course/{slideId}/update-lesson:
+    put:
+      tags:
+        - Slides
+      summary: Update the lesson of a slide
+      parameters:
+        - in: path
+          name: slideId
+          schema:
+            type: string
+          required: true
+          description: The ID of the slide whose lesson is to be updated
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                lessonId:
+                  type: string
+      responses:
+        200:
+          description: Slide lesson updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Slide'
+        404:
+          description: Slide not found
+
+
+# team routes
+
+  /team/create:
+    post:
+      summary: Create a new team
+      operationId: createTeam
+      tags:
+        - Teams
+      requestBody:
+        required: true
+        content:
+          application/json: 
+            schema:
+              type: object
+              required:
+                - name
+                - description
+                - users
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                users:
+                  type: array
+                  items:
+                    type: string
+                  description: Array of user ID's
+      responses:
+        201:
+          description: The team was successfully created
+        500:
+          description: Creating the team encountered a problem
+
+
+  /team/list:
+    get:
+      summary: Get a list of all teams
+      operationId: getListOfTeam
+      tags:
+        - Teams
+      responses:
+        200:
+          description: A list of all teams
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/Team'
+
+  /team/me:
+    get:
+      summary: Get the current user's teams
+      operationId: getMyTeams
+      tags:
+        - Teams
+      responses:
+        200:
+          description: A list of the user's teams
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/Team'
+
+  /team/invite/{teamID}/{username}:
+    get:
+      summary: Invite a user to a team
+      operationId: inviteUserToTeam
+      tags:
+        - Teams
+      parameters:
+        - in: path
+          name: teamID
+          type: string
+          required: true
+        - in: path
+          name: username
+          type: string
+          required: true
+      responses:
+        200:
+          description: The request was successfully registered
+        400:
+          description: The user you are trying to invite to the team was not found or has already been invited
+
+  /team/{id}:
+    get:
+      summary: Get a specific team by ID
+      operationId: getTeamById
+      tags:
+        - Teams
+      parameters:
+        - in: path
+          name: id
+          type: string
+          required: true
+      responses:
+        200:
+          description: The requested team
+          schema:
+            $ref: '#/components/schemas/Team'
+        404:
+          description: No team was found
+  /team/remove/{id}:
+    delete:
+      summary: Remove a team by ID
+      operationId: removeTeamById
+      tags:
+        - Teams
+      parameters:
+        - in: path
+          name: id
+          type: string
+          required: true
+      responses:
+        200:
+          description: The team was successfully deleted
+        404:
+          description: No team was found
+        500:
+          description: The team was not deleted. Please try again
+
+  /team/update/{teamID}:
+    put:
+      summary: Update an existing team
+      description: Updates a team with the specified teamID and data in the request body
+      tags:
+        - Teams
+      parameters:
+        - in: path
+          name: teamID
+          schema:
+            type: string
+          required: true
+          description: The ID of the team to update
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                users:
+                  type: array
+                  items:
+                    type: string
+                  description: Array of user ID's
+              example:
+                name: New Team Name
+                description: This is a new description for the team
+                users: usernames of users as string
+      responses:
+        200:
+          description: The team was successfully updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 200
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: The update was successful
+        404:
+          description: No team was found with these specifications
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 404
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: No team was found with these specifications
+        500:
+          description: The update of team information was not successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 500
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: The update of team information was not successful
+
+
+  # user routes
+
+  /user/profile:
+    get:
+      tags:
+        - User
+      summary: Get user profile
+      responses:
+        200:
+          description: Successfully retrieved user profile
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  success:
+                    type: boolean
+                  user:
+                    $ref: '#/components/schemas/User'
+                    type: object
+                    properties:
+                      # Add user properties here
+    post:
+      tags:
+        - User
+      summary: Edit user profile
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                first_name:
+                  type: string
+                last_name:
+                  type: string
+                skills:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        200:
+          description: Successfully updated user profile
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+
+  /user/profile-image:
+    post:
+      tags:
+        - User
+      summary: Upload user profile image
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+      responses:
+        200:
+          description: Successfully uploaded user profile image
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+
+
+  

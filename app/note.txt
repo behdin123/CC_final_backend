@@ -1,0 +1,45 @@
+Dansk:
+Vi gøre nu brug af verifyToken som henter tokenet fra cookien og ikke fra Authorization-headeren, i sit request.
+I denne tilfælde har vi valgt at gemme JWT-tokenet i en cookie, og ved at bruge verifyToken sikrer vi, at 
+applikationen konsekvent bruger cookien til at hente tokenet og ikke afhænger af en Authorization-header.
+
+JWT-tokenet bliver hentet fra cookien ved at bruge req.cookies.jwt. 
+
+
+Denne metode "coockie" er mere udsat for Cross-Site 'CSRF' angreb.
+Når JWT-tokenet gemmes i en cookie, kan det være mere udsat for CSRF-angreb, fordi cookies 
+automatisk sendes med hver anmodning til samme domæne. Hvis en angriber kan lokke brugeren 
+til at besøge en ondsindet side, kan angriberen potentielt udføre handlinger på brugerens vegne 
+ved at sende anmodninger med brugerens cookie.
+
+
+For at beskytte mod CSRF-angreb:
+- CSRF-tokens
+- same-site cookies
+
+Authorization headers til at sende JWT-tokens: (Man-in-the-middle (MITM) angreb)
+- vigtigt at bruge HTTPS (HTTP - SSL/TLS)
+- dataene mellem klienten og serveren skal være krypteret
+- hvis ikke / angriber potentielt kan opfange JWT-tokens sendt i headers og 
+              bruge dem til at få adgang til brugerens data eller udføre 
+              handlinger på deres vegne.
+
+
+Dansk:
+Ændring af ruter: I begyndelsen var vores router opsat på en flad struktur, hvor alle opgaveruter 
+var direkte under /slides. Men i en virkelig verden, hvor opgaver er relateret til specifikke 
+projekter, er det mere logisk at organisere ruter i en hierarkisk struktur, 
+hvor opgaveruter er under projektruter. Dette gør det nemmere at forstå og vedligeholde 
+koden, og det hjælper med at organisere API-anmodninger på en mere logisk og struktureret måde.
+
+Hvorfor inkludere projectId i ruten: I projekt er opgaver relateret til projekter. 
+For at arbejde med opgaver inden for et specifikt projekt er det nyttigt at inkludere projectId i ruten. 
+Dette gør det muligt at få adgang til oplysninger om det relaterede projekt, når der udføres handlinger på opgaver. 
+Desuden kan det hjælpe med at øge sikkerheden ved at sikre, at brugere kun kan arbejde med opgaver, 
+der hører til projekter, de har adgang til.
+
+slides er relateret til projekter gennem kolonner: slides er en del af kolonner, og kolonner 
+er en del af projekter. Så der er en implicit relation mellem slides og projects gennem kolonner. 
+Når der inkluderes projectId i slideruterne, tages der højde for denne relation og gør det 
+nemmere at arbejde med slides i sammenhæng med det relaterede projekt.
+
