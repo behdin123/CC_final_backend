@@ -1,4 +1,3 @@
-Dansk:
 Vi gøre nu brug af verifyToken som henter tokenet fra cookien og ikke fra Authorization-headeren, i sit request.
 I denne tilfælde har vi valgt at gemme JWT-tokenet i en cookie, og ved at bruge verifyToken sikrer vi, at 
 applikationen konsekvent bruger cookien til at hente tokenet og ikke afhænger af en Authorization-header.
@@ -25,7 +24,6 @@ Authorization headers til at sende JWT-tokens: (Man-in-the-middle (MITM) angreb)
               handlinger på deres vegne.
 
 
-Dansk:
 Ændring af ruter: I begyndelsen var vores router opsat på en flad struktur, hvor alle opgaveruter 
 var direkte under /slides. Men i en virkelig verden, hvor opgaver er relateret til specifikke 
 projekter, er det mere logisk at organisere ruter i en hierarkisk struktur, 

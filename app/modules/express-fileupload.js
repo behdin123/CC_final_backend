@@ -9,18 +9,6 @@ const { createUploadPath } = require("./functions");
 const util = require('util');
 const fileUpload = require('express-fileupload');
 
-/* const uploadImageMiddleware = fileUpload({
-    limits: { fileSize: 3 * 3024 * 3024 }, // 1MB for images
-    abortOnLimit: true,
-    responseOnLimit: 'The submitted image is too big. Max size is 1MB'
-});
-
-const uploadVideoMiddleware = fileUpload({
-    limits: { fileSize: 50 * 1024 * 1024 }, // 50MB for videos
-    abortOnLimit: true,
-    responseOnLimit: 'The submitted video is too big. Max size is 50MB'
-}); */
-
 
 const uploadFile = async (req, res, next) => {
     
@@ -115,8 +103,6 @@ const uploadVideo = async (req, res, next) => {
 
 
 module.exports = {
-    /* uploadImageMiddleware,
-    uploadVideoMiddleware, */
     uploadFile,
     uploadPdf,
     uploadVideo,

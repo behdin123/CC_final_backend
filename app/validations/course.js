@@ -14,7 +14,7 @@ function createCourseValidator(){
         body("tags").isArray({min : 0, max : 10}).withMessage("The maximum use of hashtags is 10 "),
 
         // Validator for the course description
-        body("description").notEmpty().isLength({min : 20}).withMessage("course description cannot be empty and must be at least 20 characters long"),
+        body("description").notEmpty().isLength({min : 5}).withMessage("course description cannot be empty and must be at least 5 characters long"),
     ]
 }
 

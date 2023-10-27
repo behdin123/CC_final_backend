@@ -46,33 +46,6 @@ function tokenGenerator(user) {
 }
 
 
-/**
- * Verifies the validity of a JWT token. 
- * @param {string} token - The JWT token to be verified.
- * returns object - The payload of the verified JWT token.
- * throws object - Throws an error if the token is invalid or missing the username.
- */
-
-// should be deleted at some point / not used anymore
-/* function verifyJwtToken(token) {
-    try {
-      const verified = jwt.verify(token, process.env.SECRET_KEY);
-      return verified;
-    } catch (error) {
-      throw { status: 401, message: "Token is not valid" };
-    }
-}  */
-
-
-/**
- * verifyToken middleware function checks if a JWT token is present in the cookie,
- * verifies its validity.
-
- * const verifyToken = (req, res, next) => {
-   Get JWT token from the cookie
-   const token = req.cookies.jwt;
-   }
- */
 const verifyToken = (req, res, next) => {
     // Get JWT token from the cookie
     const token = req.cookies.jwt;
