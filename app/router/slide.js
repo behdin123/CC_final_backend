@@ -32,17 +32,29 @@ verifyToken,
 uploadFile, (req, res, next) => { console.log("After uploadFile"); next(); }, 
 uploadVideo, (req, res, next) => { console.log("After uploadVideo"); next(); }, SlideController.createSlide);
 
+// Get slides by Course ID
+router.get("/:courseId/slides", verifyToken, mongoIDValidator("courseId"), expressValidatorMapper, SlideController.getSlidesByCourse);
+
 // Get slides by lesson ID
 router.get("/lesson/:lessonId/slides", verifyToken, mongoIDValidator("lessonId"), expressValidatorMapper, SlideController.getSlidesByLesson);
 
 // Get a slide by its ID
-router.get("/:slideId", verifyToken, mongoIDValidator("slideId"), expressValidatorMapper, SlideController.getSlideById);
+router.get("/slide/:slideId", verifyToken, mongoIDValidator("slideId"), expressValidatorMapper, SlideController.getSlideById);
 
 // Update a slide
 router.put("/:slideId/update", verifyToken, mongoIDValidator("slideId"), expressValidatorMapper, SlideController.updateSlide);
 
 // Update a slide's image by ID
-router.patch("/edit-slideImage/:slideId", fileupload(), verifyToken, uploadFile, mongoIDValidator("slideId"), expressValidatorMapper, SlideController.updateSlideImage)
+router.patch("/edit-slideImage/:slideId", fileupload(), verifyToken, uploadFile, mongoIDValidator("slideId"), expressValidatorMapper, SlideController.updateSlideImage);
+
+// Update a slide's video by ID
+router.patch("/edit-slideVideo/:slideId", fileupload(), verifyToken, uploadFile, mongoIDValidator("slideId"), expressValidatorMapper, SlideController.updateSlideVideo);
+
+// Update a slide's banner by ID
+router.patch("/edit-slideBanner/:slideId", fileupload(), verifyToken, uploadFile, mongoIDValidator("slideId"), expressValidatorMapper, SlideController.updateSlideBanner);
+
+// Update a slide's footer by ID
+router.patch("/edit-slideFooter/:slideId", fileupload(), verifyToken, uploadFile, mongoIDValidator("slideId"), expressValidatorMapper, SlideController.updateSlideFooter);
 
 // Delete a slide
 router.delete("/:slideId/delete", verifyToken, mongoIDValidator("slideId"), expressValidatorMapper, SlideController.deleteSlide);

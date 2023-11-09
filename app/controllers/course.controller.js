@@ -54,8 +54,11 @@ class CourseController {
     }
 
     try {
-      console.log(req.body)
+      console.log("Request Body:", req.body);
+      console.log("Request Files:", req.files);
+
       const {title, description, image, tags, private: isPrivate } = req.body;
+      
       console.log(tags);
 
       const owner = req.user._id

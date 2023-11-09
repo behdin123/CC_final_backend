@@ -13,24 +13,41 @@ const fileUpload = require('express-fileupload');
 const uploadFile = async (req, res, next) => {
     
     try {
-        // Check if a file was submitted
-        if(req.file || Object.keys(req.files).length == 0) throw {status : 400, message : "Please submit the image"}
+        console.log("uploadFile middleware called");
+        console.log("Files in Request:", req.files);
 
-        let image = req.files.image  
-        let type = path.extname(image.name).toLowerCase();
+
+        let fileKey;
+        if (req.route.path.includes("slideBanner")) {
+            fileKey = "banner";
+        } else if (req.route.path.includes("slideFooter")) {
+            fileKey = "footer";
+        } else {
+            fileKey = "image";
+        }
+        
+        console.log("Looking for file with key:", fileKey);
+        
+        // Check if a file was submitted
+        if (!req.files || !req.files[fileKey]) {
+            throw { status: 400, message: `Please submit the ${fileKey}` };
+        }
+
+        let file = req.files[fileKey];
+        let type = path.extname(file.name).toLowerCase();
 
         // Check if the file format is valid
         if(![".png", ".jpg", ".jpeg", ".webp", ".gif"].includes(type)) throw {status : 400, message : "The submitted image format is not valid"}
 
         // Set the image path
-        const image_path =  path.join(createUploadPath(), (Date.now() + type))
-        req.body.image = image_path.substring(7)
+        const file_path =  path.join(createUploadPath(), (Date.now() + type))
+        req.body[fileKey] = file_path.substring(7);
 
-        let uploadPath = path.join(__dirname, "..", "..", image_path);
+        let uploadPath = path.join(__dirname, "..", "..", file_path);
         console.log(uploadPath)
 
         // Move the file to the appropriate directory
-        image.mv(uploadPath, (err) => {
+        file.mv(uploadPath, (err) => {
             if(err) throw {status : 500, message : "Image upload failed"}
             next();
          })

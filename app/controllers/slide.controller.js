@@ -7,6 +7,7 @@ const autoBind = require("auto-bind");
 const { SlideModel } = require("../models/slide");
 const { LessonModel } = require("../models/lesson");
 const { processPdfFile } = require("../modules/pdfParse");
+const { createLinkForFiles } = require("../modules/functions");
 const path = require('path');
 const fs = require('fs');
 
@@ -24,10 +25,10 @@ class SlideController {
 
       console.log("LessonId:", lessonId);
 
-      const { title, description, text, image } = req.body;
+      const { title, description, text, image, banner, footer } = req.body;
       const video = req.file ? req.file : '';
 
-      console.log(`Title: ${title}, Description: ${description}, Text: ${text}, Image: ${image}, LessonId: ${lessonId}, Video: ${video}`);
+      console.log(`Title: ${title}, Description: ${description}, Text: ${text}, Image: ${image}, Banner: ${banner}, Footer: ${footer}, LessonId: ${lessonId}, Video: ${video}`);
 
 
       const lesson = await LessonModel.findById(lessonId);
@@ -35,7 +36,17 @@ class SlideController {
 
       if (!lesson) throw { status: 404, message: "Lesson not found" };
 
-      const slide = await SlideModel.create({ title, description, text, image, lesson: lessonId, video});
+      const slide = await SlideModel.create({
+        title, 
+        description, 
+        text, 
+        image: image || '',
+        banner: banner || '', 
+        footer: footer || '',  
+        lesson: lessonId, 
+        video
+      });
+
       console.log("Created slide:", slide);
 
       if (!slide) throw { status: 400, message: "Failed to create slide" };
@@ -101,6 +112,36 @@ class SlideController {
     }
   }
 
+  // Retrieves slides by their Course ID
+  async getSlidesByCourse(req, res, next) {
+    try {
+      const { courseId } = req.params;
+  
+      // Retrieve all lessons associated with the specified course
+      const lessons = await LessonModel.find({ course: courseId });
+  
+      // Retrieve all slides for the found lessons
+      const slides = await SlideModel.find({ lesson: { $in: lessons.map(lesson => lesson._id) } });
+  
+      if (!slides.length) {
+        return res.status(404).json({
+          status: 404,
+          success: false,
+          message: "No slides found for this course"
+        });
+      }
+  
+      return res.status(200).json({
+        status: 200,
+        success: true,
+        slides
+      });
+  
+    } catch (error) {
+      next(error);
+    }
+  }
+
 
   // Retrieves slides by their lesson ID
   async getSlidesByLesson(req, res, next) {
@@ -129,6 +170,15 @@ class SlideController {
 
       const slide = await SlideModel.findById(slideId);
       if (!slide) throw { status: 404, message: "Slide not found" };
+
+      // Opdater billed-URL
+      slide.image = createLinkForFiles(slide.image, req);
+
+      // Opdater billed-URL
+      slide.banner = createLinkForFiles(slide.banner, req);
+
+      // Opdater billed-URL
+      slide.footer = createLinkForFiles(slide.footer, req);
 
       return res.status(200).json({
         status: 200,
@@ -179,10 +229,11 @@ async updateSlideImage(req, res, next) {
       // Log the parameters, user, and files
       console.log("Params: ", req.params);
       console.log("User: ", req.user);
-      console.log("Files: ", req.files);
      
       const slideId = req.params.slideId;  
       const owner = req.user._id;
+      const { imageWidthPercent } = req.body;
+
       
       // Validate if the slide belongs to the user
       const slide = await SlideModel.findOne({ _id: slideId, owner }); 
@@ -199,7 +250,10 @@ async updateSlideImage(req, res, next) {
       // Update the slide image in the database
       const updatedSlide = await SlideModel.findByIdAndUpdate(
           slideId,
-          { $set: { image: imagePath } },
+          { $set: { image: imagePath, 
+            imageWidthPercent: imageWidthPercent
+            } 
+          },
           { new: true }
       );
       
@@ -215,10 +269,133 @@ async updateSlideImage(req, res, next) {
       });
 
   } catch (error) {
-      console.error("Caught an error: ", error); // Changed to console.error for logging errors
+      console.error("Caught an error: ", error);
       next(error);
   }
 }
+
+
+  async updateSlideBanner(req, res, next) {
+    try {
+        console.log("Params: ", req.params);
+        console.log("User: ", req.user);
+        console.log("Files: ", req.file);
+        
+        const slideId = req.params.slideId;
+        const owner = req.user._id;
+
+        const slide = await SlideModel.findOne({ _id: slideId, owner });
+        if (!slide) throw { status: 404, message: "Slide not found or user not authorized" };
+
+        if (!req.files || !req.files.banner || !req.files.banner.name) throw { status: 400, message: "No banner file provided" };
+
+        const bannerPath = req.body.banner;
+
+        const updatedSlide = await SlideModel.findByIdAndUpdate(
+            slideId,
+            { $set: { banner: bannerPath } },
+            { new: true }
+        );
+
+        console.log("Updated Slide: ", updatedSlide);
+
+        return res.status(200).json({
+            status: 200,
+            success: true,
+            message: "Slide banner updated successfully",
+            slide: updatedSlide,
+        });
+
+    } catch (error) {
+        console.error("Caught an error: ", error);
+        next(error);
+    }
+  }
+
+
+  async updateSlideFooter(req, res, next) {
+    try {
+        console.log("Params: ", req.params);
+        console.log("User: ", req.user);
+        console.log("Files: ", req.files);
+        
+        const slideId = req.params.slideId;
+        const owner = req.user._id;
+
+        const slide = await SlideModel.findOne({ _id: slideId, owner });
+        if (!slide) throw { status: 404, message: "Slide not found or user not authorized" };
+
+        if (!req.files || !req.files.footer || !req.files.footer.name) throw { status: 400, message: "No footer file provided" };
+
+        const footerPath = req.body.footer;
+
+        const updatedSlide = await SlideModel.findByIdAndUpdate(
+            slideId,
+            { $set: { footer: footerPath } },
+            { new: true }
+        );
+
+        console.log("Updated Slide: ", updatedSlide);
+
+        return res.status(200).json({
+            status: 200,
+            success: true,
+            message: "Slide footer updated successfully",
+            slide: updatedSlide,
+        });
+
+    } catch (error) {
+        console.error("Caught an error: ", error);
+        next(error);
+    }
+  }
+
+
+  async updateSlideVideo(req, res, next) {
+    try {
+        // Log the parameters, user, and files
+        console.log("Params: ", req.params);
+        console.log("User: ", req.user);
+        console.log("Files: ", req.files);
+      
+        const slideId = req.params.slideId;  
+        const owner = req.user._id;
+        
+        // Validate if the slide belongs to the user
+        const slide = await SlideModel.findOne({ _id: slideId, owner }); 
+        if (!slide) throw { status: 404, message: "Slide not found or user not authorized" };
+        
+        // Validate the uploaded video
+        if (!req.files || !req.files.video || !req.files.video.name) throw { status: 400, message: "No video file provided" };
+        
+        // Log the validated video path
+        console.log("Validated video path: ", req.body.video);
+
+        const videoPath = req.body.video;
+        
+        // Update the slide video in the database
+        const updatedSlide = await SlideModel.findByIdAndUpdate(
+            slideId,
+            { $set: { video: videoPath } },
+            { new: true }
+        );
+        
+        // Log the updated slide object
+        console.log("Updated Slide: ", updatedSlide);
+        
+        // Return success message with the updated slide
+        return res.status(200).json({
+            status: 200,
+            success: true,
+            message: "Slide video updated successfully",
+            slide: updatedSlide,
+        });
+
+    } catch (error) {
+        console.error("Caught an error: ", error); // Changed to console.error for logging errors
+        next(error);
+    }
+  }
 
 
 

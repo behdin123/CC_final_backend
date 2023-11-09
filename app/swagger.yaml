@@ -604,18 +604,12 @@ paths:
           description: Slides not found
 
 
-  /course/slides/{slideId}:
+  /course/slide/{slideId}:
     get:
       tags:
         - Slides
       summary: Get a slide by its ID
       parameters:
-        - in: path
-          name: courseId
-          schema:
-            type: string
-          required: true
-          description: The ID of the course
         - in: path
           name: slideId
           schema:
