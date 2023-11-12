@@ -35,7 +35,7 @@ module.exports = class Application {
         const corsOptions = {
             origin: 'https://cc-internship-frontend.onrender.com',
             credentials: true, // Tillader cookies at blive sendt på tværs af oprindelser
-            methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+            methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
             allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
         };
     
