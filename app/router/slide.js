@@ -44,11 +44,14 @@ router.get("/slide/:slideId", verifyToken, mongoIDValidator("slideId"), expressV
 // Update a slide
 router.put("/:slideId/update", verifyToken, mongoIDValidator("slideId"), expressValidatorMapper, SlideController.updateSlide);
 
+// update all slides order
+router.put("/UpdateAllSlideOrder", verifyToken, expressValidatorMapper, SlideController.UpdateAllSlideOrder);
+
 // Update a slide's image by ID
 router.patch("/edit-slideImage/:slideId", fileupload(), verifyToken, uploadFile, mongoIDValidator("slideId"), expressValidatorMapper, SlideController.updateSlideImage);
 
 // Update a slide's video by ID
-router.patch("/edit-slideVideo/:slideId", fileupload(), verifyToken, uploadFile, mongoIDValidator("slideId"), expressValidatorMapper, SlideController.updateSlideVideo);
+router.patch("/edit-slideVideo/:slideId", fileupload(), verifyToken, uploadVideo, mongoIDValidator("slideId"), expressValidatorMapper, SlideController.updateSlideVideo);
 
 // Update a slide's banner by ID
 router.patch("/edit-slideBanner/:slideId", fileupload(), verifyToken, uploadFile, mongoIDValidator("slideId"), expressValidatorMapper, SlideController.updateSlideBanner);

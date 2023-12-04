@@ -19,17 +19,11 @@ class SlideController {
   // Creates a new slide in the specified lesson
   async createSlide(req, res, next) {
     try {
-      console.log("Inside createSlide function");
-
       const lessonId = req.params.lessonId;
 
-      console.log("LessonId:", lessonId);
-
-      const { title, description, text, image, banner, footer } = req.body;
+      const { title, description, text, banner, footer } = req.body;
       const video = req.file ? req.file : '';
-
-      console.log(`Title: ${title}, Description: ${description}, Text: ${text}, Image: ${image}, Banner: ${banner}, Footer: ${footer}, LessonId: ${lessonId}, Video: ${video}`);
-
+      const image = req.file ? req.file : '';
 
       const lesson = await LessonModel.findById(lessonId);
       console.log("Found lesson:", lesson);
@@ -66,34 +60,35 @@ class SlideController {
   // This function is to upload a PDF, convert it to text, and create slides from the text.
   async uploadPdf(req, res, next) {
     try {
-        console.log('req.file:', req.file);
-        console.log('req.body:', req.body);
-
         // Store the file path of the uploaded file.
         const filePath = req.file;
 
         // convert the PDF at the given path to text.
         const text = await processPdfFile(filePath);
 
-        // Split the text into an array of slides, using the double newline
-        const slidesText = text.split('\n\n');
+        // Splits text into slides based on double line breaks and filters empty slides
+        const slidesText = text.split('\n\n').filter(slideText => slideText.trim() !== '');
         
+        // To find which lesson the slides should be created in (introduction, main, question)
         const lessonId = req.body.lessonId;
-
 
         const slides = [];
         // Loop over the array of slide texts.
         for (let i = 0; i < slidesText.length; i++) {
+
             // Get the text for the current slide.
             const slideText = slidesText[i];
 
             // The first line of the slide text is treated as the title.
             const title = slideText.split('\n')[0];
+
+            const description = title;
+
             // The rest of the slide text is treated as the text.
             const text = slideText.split('\n').slice(1).join('\n');
 
             // Create a new slide document with the extracted title and text, lesson ID and the order (i+1).
-            const slide = await SlideModel.create({ title, text, description: '', lesson: lessonId, order: i + 1 });
+            const slide = await SlideModel.create({ title, text, description, lesson: lessonId, order: i + 1 });
             slides.push(slide);
         }
 
@@ -112,6 +107,29 @@ class SlideController {
     }
   }
 
+  
+  // automaticly update the order of the slides in the array to show them in correct order compared to their slide index
+  async UpdateAllSlideOrder(req, res, next) {
+    try {
+      const { slideOrders } = req.body; // slideOrders er et array af objekter med { slideId, newOrder }
+  
+      // Brug en loop eller en bulk-operation for at opdatere hvert slide
+      for (const slideOrder of slideOrders) {
+        const { slideId, newOrder } = slideOrder;
+        await SlideModel.findByIdAndUpdate(slideId, { order: newOrder });
+      }
+  
+      return res.status(200).json({
+        status: 200,
+        success: true,
+        message: "Slides order updated successfully",
+      });
+  
+    } catch (error) {
+      next(error);
+    }
+  }
+
   // Retrieves slides by their Course ID
   async getSlidesByCourse(req, res, next) {
     try {
@@ -120,8 +138,9 @@ class SlideController {
       // Retrieve all lessons associated with the specified course
       const lessons = await LessonModel.find({ course: courseId });
   
+  
       // Retrieve all slides for the found lessons
-      const slides = await SlideModel.find({ lesson: { $in: lessons.map(lesson => lesson._id) } });
+      const slides = await SlideModel.find({ lesson: { $in: lessons.map(lesson => lesson._id) } }).sort({ order: 1 });
   
       if (!slides.length) {
         return res.status(404).json({
@@ -171,14 +190,17 @@ class SlideController {
       const slide = await SlideModel.findById(slideId);
       if (!slide) throw { status: 404, message: "Slide not found" };
 
-      // Opdater billed-URL
+      // Update Image-URL
       slide.image = createLinkForFiles(slide.image, req);
 
-      // Opdater billed-URL
+      // Update Banner-URL
       slide.banner = createLinkForFiles(slide.banner, req);
 
-      // Opdater billed-URL
+      // Update Footer-URL
       slide.footer = createLinkForFiles(slide.footer, req);
+
+      // Update Video-URL
+      slide.video = createLinkForFiles(slide.video, req);
 
       return res.status(200).json({
         status: 200,
@@ -193,15 +215,15 @@ class SlideController {
 // Updates a slide's title, description, and text
 async updateSlide(req, res, next) {
 
-  console.log('Request Body:', req.body);
+  /* console.log('Request Body:', req.body);
   console.log('Request Params:', req.params);
-  console.log('Request Files:', req.files); 
+  console.log('Request Files:', req.files);  */
   
   try {
     const slideId = req.params.slideId;
     const data = { ...req.body };
 
-    // Fjern uønskede eller ugyldige felter fra dataobjektet
+    // Remove unwanted or invalid fields from the data object
     ["image", "video"].concat(Object.keys(data))
       .filter(key => !["title", "description", "text"].includes(key))
       .forEach(key => delete data[key]);
@@ -226,41 +248,30 @@ async updateSlide(req, res, next) {
 
 async updateSlideImage(req, res, next) {
   try {
-      // Log the parameters, user, and files
-      console.log("Params: ", req.params);
-      console.log("User: ", req.user);
-     
       const slideId = req.params.slideId;  
       const owner = req.user._id;
       const { imageWidthPercent } = req.body;
 
-      
       // Validate if the slide belongs to the user
       const slide = await SlideModel.findOne({ _id: slideId, owner }); 
       if (!slide) throw { status: 404, message: "Slide not found or user not authorized" };
-      
-      // Validate the uploaded image
-      if (!req.files || !req.files.image || !req.files.image.name) throw { status: 400, message: "No image file provided" };
-      
-      // Log the validated image path
-      console.log("Validated image path: ", req.body.image);
 
-      const imagePath = req.body.image;
-      
-      // Update the slide image in the database
-      const updatedSlide = await SlideModel.findByIdAndUpdate(
-          slideId,
-          { $set: { image: imagePath, 
-            imageWidthPercent: imageWidthPercent
-            } 
-          },
-          { new: true }
-      );
-      
-      // Log the updated slide object
-      console.log("Updated Slide: ", updatedSlide);
-      
-      // Return success message with the updated slide
+      if (req.files && req.files.image && req.files.image.name) {
+          // If a new image is provided, update the slide's image path
+          const imagePath = req.body.image;
+          slide.image = imagePath;
+      } else {
+          // If no new image (when delete), set slide image to empty string
+          slide.image = '';
+      }
+
+      // Update the image width percentage
+      slide.imageWidthPercent = imageWidthPercent;
+
+      // Save the updated slide information
+      const updatedSlide = await slide.save();
+
+      // Return the updated slide in the response
       return res.status(200).json({
           status: 200,
           success: true,
@@ -277,9 +288,9 @@ async updateSlideImage(req, res, next) {
 
   async updateSlideBanner(req, res, next) {
     try {
-        console.log("Params: ", req.params);
+        /* console.log("Params: ", req.params);
         console.log("User: ", req.user);
-        console.log("Files: ", req.file);
+        console.log("Files: ", req.file); */
         
         const slideId = req.params.slideId;
         const owner = req.user._id;
@@ -315,9 +326,9 @@ async updateSlideImage(req, res, next) {
 
   async updateSlideFooter(req, res, next) {
     try {
-        console.log("Params: ", req.params);
+        /* console.log("Params: ", req.params);
         console.log("User: ", req.user);
-        console.log("Files: ", req.files);
+        console.log("Files: ", req.files); */
         
         const slideId = req.params.slideId;
         const owner = req.user._id;
@@ -353,11 +364,6 @@ async updateSlideImage(req, res, next) {
 
   async updateSlideVideo(req, res, next) {
     try {
-        // Log the parameters, user, and files
-        console.log("Params: ", req.params);
-        console.log("User: ", req.user);
-        console.log("Files: ", req.files);
-      
         const slideId = req.params.slideId;  
         const owner = req.user._id;
         
@@ -365,21 +371,20 @@ async updateSlideImage(req, res, next) {
         const slide = await SlideModel.findOne({ _id: slideId, owner }); 
         if (!slide) throw { status: 404, message: "Slide not found or user not authorized" };
         
-        // Validate the uploaded video
-        if (!req.files || !req.files.video || !req.files.video.name) throw { status: 400, message: "No video file provided" };
-        
-        // Log the validated video path
-        console.log("Validated video path: ", req.body.video);
+        if (req.files && req.files.video && req.files.video.name) {
+          const videoPath = req.body.video;
+          slide.video = videoPath;
+        } else {
+            // If no new video (video deleted), set slide.video to an empty string
+            slide.video = '';
+        }
 
-        const videoPath = req.body.video;
+        /* // Log the validated video path
+        console.log("Validated video path: ", req.body.video); */
         
         // Update the slide video in the database
-        const updatedSlide = await SlideModel.findByIdAndUpdate(
-            slideId,
-            { $set: { video: videoPath } },
-            { new: true }
-        );
-        
+        const updatedSlide = await slide.save();
+
         // Log the updated slide object
         console.log("Updated Slide: ", updatedSlide);
         

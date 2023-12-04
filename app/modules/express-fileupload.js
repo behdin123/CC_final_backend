@@ -16,7 +16,6 @@ const uploadFile = async (req, res, next) => {
         console.log("uploadFile middleware called");
         console.log("Files in Request:", req.files);
 
-
         let fileKey;
         if (req.route.path.includes("slideBanner")) {
             fileKey = "banner";
@@ -30,7 +29,8 @@ const uploadFile = async (req, res, next) => {
         
         // Check if a file was submitted
         if (!req.files || !req.files[fileKey]) {
-            throw { status: 400, message: `Please submit the ${fileKey}` };
+/*             throw { status: 400, message: `Please submit the ${fileKey}` }; */
+            return next();
         }
 
         let file = req.files[fileKey];
@@ -93,7 +93,7 @@ const uploadVideo = async (req, res, next) => {
     try {
         
         if (!req.files || Object.keys(req.files).length === 0 || !req.files.video) {
-            // Hvis der ikke er nogen filer, eller hvis der ikke er nogen video fil, fortsæt til næste middleware eller controller
+            // If their is no files, go next middleware or controller
             return next();
         }
 
@@ -110,7 +110,7 @@ const uploadVideo = async (req, res, next) => {
         const mv = util.promisify(video.mv);
         await mv(uploadPath); 
 
-        req.file = uploadPath;
+        req.body.video = video_path.substring(7);
 
         next();
     } catch (error) {

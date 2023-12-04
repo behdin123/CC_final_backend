@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const SlideSchema = new mongoose.Schema(
   {
     lesson: { type: mongoose.Types.ObjectId, ref: "lesson", required: true },
+    order: { type: Number },
     title: { type: String},
     description: { type: String, default: "" },
     banner : {type : String},

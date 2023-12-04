@@ -57,7 +57,9 @@ class CourseController {
       console.log("Request Body:", req.body);
       console.log("Request Files:", req.files);
 
-      const {title, description, image, tags, private: isPrivate } = req.body;
+      const { title, description, image, private: isPrivate } = req.body;
+
+      let tags = req.body.tags ? JSON.parse(req.body.tags) : [];
       
       console.log(tags);
 

@@ -30,10 +30,9 @@ module.exports = class Application {
     configApplication(){
         const path = require("path")
 
-        // Handle CORS issue + connect to FrontEnd
-        // Opret CORS konfiguration
+        // Handle CORS issue + connect to FrontEnd - Create CORS configuration
         const corsOptions = {
-            origin: 'https://cc-internship-frontend.onrender.com',
+            origin: 'http://localhost:5173',
             credentials: true, // Tillader cookies at blive sendt på tværs af oprindelser
             methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
             allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
