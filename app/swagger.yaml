@@ -2,7 +2,19 @@ openapi: 3.0.0
 info:
   title: My REST API
   version: 1.0.0
-  description: A REST API to manage courses, slides, teams, and users.
+  description: |
+    This API supports a web application for course creation, where you can make catalog, courses & slides.
+
+    ## Login, Authentication & Token Handling
+    - You must register and login to access protected routes (which is all routes except register & login routes).
+    - Upon login, a JWT token is automatically generated and sent via cookies with your request (including here in Swagger test routes).
+
+    ## CORS (Cross-Origin Resource Sharing)
+    - Switch URLs for CORS settings and API calls to the backend.
+    - You can find CORS settings in the server.js file in the backend.
+    - API calls are located in the api folder in the src directory of the frontend.
+
+
 servers:
   - url: http://localhost:3000/
     description: Localhost development server
@@ -751,212 +763,6 @@ paths:
                 $ref: '#/components/schemas/Slide'
         404:
           description: Slide not found
-
-
-# team routes
-
-  /team/create:
-    post:
-      summary: Create a new team
-      operationId: createTeam
-      tags:
-        - Teams
-      requestBody:
-        required: true
-        content:
-          application/json: 
-            schema:
-              type: object
-              required:
-                - name
-                - description
-                - users
-              properties:
-                name:
-                  type: string
-                description:
-                  type: string
-                users:
-                  type: array
-                  items:
-                    type: string
-                  description: Array of user ID's
-      responses:
-        201:
-          description: The team was successfully created
-        500:
-          description: Creating the team encountered a problem
-
-
-  /team/list:
-    get:
-      summary: Get a list of all teams
-      operationId: getListOfTeam
-      tags:
-        - Teams
-      responses:
-        200:
-          description: A list of all teams
-          schema:
-            type: array
-            items:
-              $ref: '#/components/schemas/Team'
-
-  /team/me:
-    get:
-      summary: Get the current user's teams
-      operationId: getMyTeams
-      tags:
-        - Teams
-      responses:
-        200:
-          description: A list of the user's teams
-          schema:
-            type: array
-            items:
-              $ref: '#/components/schemas/Team'
-
-  /team/invite/{teamID}/{username}:
-    get:
-      summary: Invite a user to a team
-      operationId: inviteUserToTeam
-      tags:
-        - Teams
-      parameters:
-        - in: path
-          name: teamID
-          type: string
-          required: true
-        - in: path
-          name: username
-          type: string
-          required: true
-      responses:
-        200:
-          description: The request was successfully registered
-        400:
-          description: The user you are trying to invite to the team was not found or has already been invited
-
-  /team/{id}:
-    get:
-      summary: Get a specific team by ID
-      operationId: getTeamById
-      tags:
-        - Teams
-      parameters:
-        - in: path
-          name: id
-          type: string
-          required: true
-      responses:
-        200:
-          description: The requested team
-          schema:
-            $ref: '#/components/schemas/Team'
-        404:
-          description: No team was found
-  /team/remove/{id}:
-    delete:
-      summary: Remove a team by ID
-      operationId: removeTeamById
-      tags:
-        - Teams
-      parameters:
-        - in: path
-          name: id
-          type: string
-          required: true
-      responses:
-        200:
-          description: The team was successfully deleted
-        404:
-          description: No team was found
-        500:
-          description: The team was not deleted. Please try again
-
-  /team/update/{teamID}:
-    put:
-      summary: Update an existing team
-      description: Updates a team with the specified teamID and data in the request body
-      tags:
-        - Teams
-      parameters:
-        - in: path
-          name: teamID
-          schema:
-            type: string
-          required: true
-          description: The ID of the team to update
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                description:
-                  type: string
-                users:
-                  type: array
-                  items:
-                    type: string
-                  description: Array of user ID's
-              example:
-                name: New Team Name
-                description: This is a new description for the team
-                users: usernames of users as string
-      responses:
-        200:
-          description: The team was successfully updated
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: integer
-                    example: 200
-                  success:
-                    type: boolean
-                    example: true
-                  message:
-                    type: string
-                    example: The update was successful
-        404:
-          description: No team was found with these specifications
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: integer
-                    example: 404
-                  success:
-                    type: boolean
-                    example: false
-                  message:
-                    type: string
-                    example: No team was found with these specifications
-        500:
-          description: The update of team information was not successful
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: integer
-                    example: 500
-                  success:
-                    type: boolean
-                    example: false
-                  message:
-                    type: string
-                    example: The update of team information was not successful
-
 
   # user routes
 
