@@ -72,13 +72,13 @@ class SlideController {
         // To find which lesson the slides should be created in (introduction, main, question)
         const lessonId = req.body.lessonId;
 
-        const slides = [];
-        // Loop over the array of slide texts.
-        for (let i = 0; i < slidesText.length; i++) {
-
-            // Get the text for the current slide.
-            const slideText = slidesText[i];
-
+        /**
+         * Converts slidesText into a slides using 'map()' and theirfor they will 
+         * be created in the samme time which is more efficient than 'for' loop.
+         * Each 'slideText' will extract title, description, and text, 
+         * and a new slide is created in the database with the extracted information.
+         */
+        const slides = slidesText.map(async (slideText, index) => {
             // The first line of the slide text is treated as the title.
             const title = slideText.split('\n')[0];
 
@@ -88,10 +88,8 @@ class SlideController {
             const text = slideText.split('\n').slice(1).join('\n');
 
             // Create a new slide document with the extracted title and text, lesson ID and the order (i+1).
-            const slide = await SlideModel.create({ title, text, description, lesson: lessonId, order: i + 1 });
-            slides.push(slide);
-        }
-
+            return await SlideModel.create({ title, text, description, lesson: lessonId, order: index + 1 });
+        })
 
         // Delete the uploaded PDF file after processing.
         fs.unlinkSync(filePath);
