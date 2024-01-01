@@ -101,7 +101,7 @@ function createUploadPath(){
  * returns string - The created file link.
  */
 function createLinkForFiles(fileAddress, req){
-    return fileAddress? (/* req.protocol */"http" + "://" + req.get("host")+ "/" + (fileAddress.replace(/[\\\\]/gm, "/"))) : undefined
+    return fileAddress? ("http" + "://" + req.get("host")+ "/" + (fileAddress.replace(/[\\\\]/gm, "/"))) : undefined
 }
 
 module.exports = {
@@ -109,6 +109,5 @@ module.exports = {
     createLinkForFiles,
     tokenGenerator,
     verifyToken,
-    /* verifyJwtToken, */
     createUploadPath
 }

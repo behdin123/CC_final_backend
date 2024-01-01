@@ -25,8 +25,6 @@ const uploadFile = async (req, res, next) => {
             fileKey = "image";
         }
         
-        console.log("Looking for file with key:", fileKey);
-        
         // Check if a file was submitted
         if (!req.files || !req.files[fileKey]) {
 /*             throw { status: 400, message: `Please submit the ${fileKey}` }; */
@@ -44,7 +42,6 @@ const uploadFile = async (req, res, next) => {
         req.body[fileKey] = file_path.substring(7);
 
         let uploadPath = path.join(__dirname, "..", "..", file_path);
-        console.log(uploadPath)
 
         // Move the file to the appropriate directory
         file.mv(uploadPath, (err) => {

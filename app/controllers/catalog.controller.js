@@ -10,7 +10,9 @@ class CatalogController {
         try {
             const { name, description, categories, status } = req.body;
 
-            const catalog = await CatalogModel.create({ name, description, categories, status });
+            const owner = req.user._id
+
+            const catalog = await CatalogModel.create({ name, description, owner, categories, status });
 
             return res.status(201).json({
                 status: 201,
@@ -24,7 +26,9 @@ class CatalogController {
 
     async getAllCatalogs(req, res, next) {
         try {
-            const catalogs = await CatalogModel.find({});
+            const owner = req.user._id;
+            const catalogs = await CatalogModel.find({ owner });
+            
             return res.status(200).json({
                 status: 200,
                 success: true,

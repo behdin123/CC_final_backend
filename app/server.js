@@ -7,10 +7,9 @@ const cookieParser = require('cookie-parser');
 const path = require('path');
 const fileUpload = require("express-fileupload");
 const cors = require('cors');
-
-
-
 const { AllRoutes } = require("./router/router");
+
+
 module.exports = class Application {
 
     #express = require("express");
@@ -25,6 +24,8 @@ module.exports = class Application {
         this.createServer(PORT)
         this.errorHandler()
     }
+
+
 
     // Method for configuring the application
     configApplication(){
@@ -47,6 +48,8 @@ module.exports = class Application {
         this.#app.use(cookieParser());
     }
 
+
+
     // Method for creating the server
     createServer(PORT){
 
@@ -59,6 +62,7 @@ module.exports = class Application {
         })
     }
 
+
     // Method for configuring the database
     configDatabase(DB_URL){
         const mongoose = require("mongoose");
@@ -69,6 +73,7 @@ module.exports = class Application {
             return console.log("Connect to DB successful...")
         })
     }
+
 
     // Method for handling errors
     errorHandler(){
@@ -105,15 +110,15 @@ module.exports = class Application {
 
         // Serve swagger.yaml as a static file
         this.#app.use('/swagger.yaml', express.static(path.join(__dirname, 'swagger.yaml')));
+        this.#app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs, { swaggerOptions: { url: '/swagger.yaml' } }));
 
+        
         // Define a route for the root URL
         this.#app.get("/", (req, res, next) => {
             return res.json({
                 message : "this is a new Express application"
             })
         })
-
-        this.#app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs, { swaggerOptions: { url: '/swagger.yaml' } }));
 
         // Use the imported AllRoutes object containing all defined routes
         this.#app.use(AllRoutes)

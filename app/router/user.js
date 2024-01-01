@@ -23,11 +23,7 @@ router.post("/profile", verifyToken, UserController.editProfile)
 
 // Uploads the user's profile image
 // Uses upload_multer for file upload, imageValidator and expressValidatorMapper middleware for validation of request parameters
-router.post("/profile-image", 
-    upload_multer.single("image"),
-    imageValidator(), expressValidatorMapper,
-    verifyToken, UserController.uploadProfileImage)
-
+router.post("/profile-image", upload_multer.single("image"), imageValidator(), expressValidatorMapper, verifyToken, UserController.uploadProfileImage)
 
 // Gets all user requests
 router.get("/requests", verifyToken, UserController.getAllRequest)

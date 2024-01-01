@@ -18,11 +18,9 @@ const { lessonRoutes } = require("./lessons");
 
 const { slideRoutes } = require("./slide");
 
-const { teamRoutes } = require("./team");
-
 const { userRoutes } = require("./user");
 
-// Routes for authentication, course, slides, team, user
+// Routes for authentication, catalog, course, lessons, slides, user
 router.use("/auth", authRoutes)
 
 router.use("/catalog", catalogRoutes);
@@ -32,8 +30,6 @@ router.use("/course", courseRoutes)
 router.use("/course", lessonRoutes);
 
 router.use("/course", slideRoutes);
-
-router.use("/team", teamRoutes)
 
 router.use("/user", userRoutes)
 

@@ -7,11 +7,11 @@ info:
 
     ## Login, Authentication & Token Handling
     - You must register and login to access protected routes (which is all routes except register & login routes).
-    - Upon login, a JWT token is automatically generated and sent via cookies with your request (including here in Swagger test routes).
+    - When you login, a JWT token is automatically generated and sent via cookies with your request (including here in Swagger test routes).
 
     ## CORS (Cross-Origin Resource Sharing)
-    - Switch URLs for CORS settings and API calls to the backend.
-    - You can find CORS settings in the server.js file in the backend.
+    - Switch URLs for CORS settings, and API calls to the backend.
+    - You can find CORS settings in the server.js file indside "configApplication" function, in the backend.
     - API calls are located in the api folder in the src directory of the frontend.
 
 
