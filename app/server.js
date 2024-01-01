@@ -33,7 +33,7 @@ module.exports = class Application {
 
         // Handle CORS issue + connect to FrontEnd - Create CORS configuration
         const corsOptions = {
-            origin: 'http://localhost:5173',
+            origin: 'https://cc-final-frontend.onrender.com',
             credentials: true, // Tillader cookies at blive sendt på tværs af oprindelser
             methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
             allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']

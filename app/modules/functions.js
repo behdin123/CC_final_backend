@@ -101,7 +101,7 @@ function createUploadPath(){
  * returns string - The created file link.
  */
 function createLinkForFiles(fileAddress, req){
-    return fileAddress? ("http" + "://" + req.get("host")+ "/" + (fileAddress.replace(/[\\\\]/gm, "/"))) : undefined
+    return fileAddress? ("https" + "://" + req.get("host")+ "/" + (fileAddress.replace(/[\\\\]/gm, "/"))) : undefined
 }
 
 module.exports = {
