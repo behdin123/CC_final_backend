@@ -39,7 +39,7 @@ function registerValidator(){
             return true;
         }),
 
-        body("mobile").isMobilePhone("da-DK").withMessage("this phone number isn't allowed")
+        body("mobile").isMobilePhone().withMessage("this phone number isn't allowed")
         .custom(async mobile => {
             const user = await UserModel.findOne({mobile})
             if(user) throw "mobile phone was used before";
