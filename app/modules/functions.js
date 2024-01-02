@@ -83,30 +83,16 @@ const verifyToken = (req, res, next) => {
  * Creates a path for uploading files based on the current date.
  * returns string - The created path.
  */
-/* function createUploadPath(){
+function createUploadPath(){
     let d = new Date();
     const Year = ""+d.getFullYear();
     const Month = d.getMonth() + "";
     const day = "" + d.getDate();
-
     const uploadPath = path.join(__dirname, "..", "..", "public", "upload", Year, Month, day);
     fs.mkdirSync(uploadPath, {recursive : true});
     return path.join("public", "upload", Year, Month, day);
-} */
-
-function createUploadPath(){
-  /* let d = new Date();
-  const Year = ""+d.getFullYear();
-  const Month = d.getMonth() + "";
-  const Day = "" + d.getDate();
-   */
-  
-  // Opdateret sti, som peger på mount pathen af din disk på Render
-  const uploadPath = path.join("/public/upload");
-  fs.mkdirSync(uploadPath, {recursive : true});
-
-  return path.join("public", "upload");
 }
+
 
 /**
  * Creates a link for a file address.
