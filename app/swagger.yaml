@@ -18,7 +18,7 @@ info:
 servers:
   - url: http://localhost:3000/
     description: Localhost development server
-  - url: https://p-manager-backend.onrender.com
+  - url: https://cc-final-backend.onrender.com
     description: Live server on Render
 
 components:
