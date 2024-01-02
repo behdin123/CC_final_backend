@@ -6,7 +6,6 @@ const express = require('express');
 const cookieParser = require('cookie-parser');
 const path = require('path');
 const fileUpload = require("express-fileupload");
-const cors = require('cors');
 const { AllRoutes } = require("./router/router");
 
 
@@ -31,16 +30,14 @@ module.exports = class Application {
     configApplication(){
         const path = require("path")
 
-        // Handle CORS issue + connect to FrontEnd - Create CORS configuration
-        const corsOptions = {
-            origin: '*',
-            credentials: true, // Tillader cookies at blive sendt på tværs af oprindelser
-            methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-            allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
-        };
-    
-        // Brug cors middleware med de angivne indstillinger
-        this.#app.use(cors(corsOptions));
+        // Handle CORS issue + connect to FrontEnd
+        this.#app.use(function(req, res, next) {
+            res.header("Access-Control-Allow-Origin", "https://p-manager-frontend.onrender.com");
+            res.header("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT,PATCH,DELETE");
+            res.header("Access-Control-Allow-Headers", "auth-token, Origin, X-Requested-With, Content-Type, Accept");
+            res.header("Access-Control-Allow-Credentials", "true");
+            next();
+        });
         
         this.#app.use(this.#express.static(path.join(__dirname, "..", "public")))
         this.#app.use(this.#express.json());
