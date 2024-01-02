@@ -88,6 +88,7 @@ const verifyToken = (req, res, next) => {
     const Year = ""+d.getFullYear();
     const Month = d.getMonth() + "";
     const day = "" + d.getDate();
+
     const uploadPath = path.join(__dirname, "..", "..", "public", "upload", Year, Month, day);
     fs.mkdirSync(uploadPath, {recursive : true});
     return path.join("public", "upload", Year, Month, day);
@@ -95,12 +96,13 @@ const verifyToken = (req, res, next) => {
 
 function createUploadPath(){
   let d = new Date();
-  const Year = d.getFullYear().toString();
-  const Month = (d.getMonth() + 1).toString().padStart(2, '0');
-  const Day = d.getDate().toString().padStart(2, '0');
+  const Year = ""+d.getFullYear();
+  const Month = d.getMonth() + "";
+  const Day = "" + d.getDate();
   
   // Opdateret sti, som peger på mount pathen af din disk på Render
   const uploadPath = path.join("/public/upload", Year, Month, Day);
+  fs.mkdirSync(uploadPath, {recursive : true});
   
   // Bemærk: Ingen oprettelse af mapper her, da det antages at Render håndterer dette.
   return path.join("public", "upload", Year, Month, Day);
